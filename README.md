@@ -43,54 +43,29 @@ This project is designed to give an _a priori_ lower bound on variance-reduction
 
 ## 1. Mathematical Foundations
 
+For GitHub-safe viewing, the key spectral equations are rendered below as an embedded SVG summary image. The full formal derivations remain in the paper PDF linked above.
+
+![Core spectral reduced-variance equations](assets/spectral_summary.svg)
+
 ### 1.1 Full Model & Synchronous Coupling
 
-Let the full asset state $S_t \in \mathbb{R}^d$ follow an Itô diffusion under the risk-neutral measure:
-$$d S_t = b(S_t) dt + \Sigma(S_t) d W_t, \quad S_0 = s_0$$
-driven by a $d$-dimensional standard Brownian motion $W_t$.
+The reduced model is built from a low-rank projection of the full diffusion, and the same Brownian path is used across the full and reduced models to preserve the coupling structure needed for variance reduction.
 
-The reduced model $\hat{S}_t \in \mathbb{R}^d$ lives on the top-$d'$ eigenspace ($d' \le 3$) spanned by orthogonal projector $\mathcal{P} \in \mathbb{R}^{d \times d}$ ($\mathcal{P}^2 = \mathcal{P} = \mathcal{P}^\top$, $\text{rank}(\mathcal{P}) = d'$), driven by the **identical Brownian path** $W_t$ (synchronous coupling):
-$$d \hat{S}_t = \mathcal{P} b(\hat{S}_t) dt + \mathcal{P} \Sigma(\hat{S}_t) d W_t, \quad \hat{S}_0 = \mathcal{P} s_0$$
+### 1.2 Time/Path-Averaged Covariance Operator
 
-### 1.2 Time/Path-Averaged Covariance Operator $\bar{A}$
-
-To prevent circular dependence on the projector, the operator is defined over the unreduced process:
-$$\bar{A} := \frac{1}{T} \int_0^T \mathbb{E}[\Sigma(S_t) \Sigma(S_t)^\top] dt \in \mathbb{R}^{d \times d}$$
-By the spectral theorem:
-$$\bar{A} = \sum_{j=1}^d \bar{\lambda}_j \bar{u}_j \bar{u}_j^\top, \quad \bar{\lambda}_1 \ge \bar{\lambda}_2 \ge \dots \ge \bar{\lambda}_d \ge 0$$
-**Ky Fan Maximum Principle (Section 7.3)**: Among all rank-$d'$ orthogonal projectors $\mathcal{Q}$, the projector $\mathcal{P} = \sum_{j=1}^{d'} \bar{u}_j \bar{u}_j^\top$ provably minimizes discarded diffusion energy:
-$$\text{tr}((I - \mathcal{P}) \bar{A}) = \sum_{j > d'} \bar{\lambda}_j \le \text{tr}((I - \mathcal{Q}) \bar{A})$$
+The covariance operator is formed from the time/path-averaged second-moment structure of the full diffusion, and the dominant eigen-directions define the optimal projector in the sense of discarding the least important diffusion energy.
 
 ### 1.3 Exact Lemmas & Theoretical Bound
 
-For target payoff $\Pi = e^{-rT} f(S_T)$ and surrogate $Y = e^{-rT} f(\hat{S}_T)$, the variance-minimizing control variate estimator is:
-$$\hat{V}_N = \frac{1}{N} \sum_{k=1}^N \left( \Pi^{(k)} - \beta^* (Y^{(k)} - \mu_Y) \right), \quad \beta^* = \frac{\text{Cov}(\Pi, Y)}{\text{Var}(Y)}$$
-$$\text{Var}(\hat{V}_N) = \frac{\sigma_\Pi^2}{N} (1 - \rho^2), \quad \text{VRF} = \frac{1}{1 - \rho^2}, \quad \rho = \text{corr}(\Pi, Y)$$
-
-The paper establishes the bound via three lemmas:
-
-1. **Lemma 1 (Angle Bound)**: $1 - \rho^2 \le \frac{\text{Var}(\Pi - Y)}{\sigma_\Pi^2} \le \frac{\|\Pi - Y\|_{L^2}^2}{\sigma_\Pi^2}$
-2. **Lemma 2 (Lipschitz Transfer)**: $\|\Pi - Y\|_{L^2}^2 \le L_f^2 e^{-2rT} \mathbb{E}\|S_T - \hat{S}_T\|^2$
-3. **Lemma 3 (Exact Path Gap)**: In centered Gaussian settings:
-   $$\mathbb{E}\|S_T - \hat{S}_T\|^2 = T \sum_{j > d'} \lambda_j$$
-
-Chaining the lemmas gives the _a priori_ VRF floor:
-$$1 - \rho^2 \le \frac{L_f^2 e^{-2rT} T}{\sigma_\Pi^2} \sum_{j > d'} \lambda_j \implies \text{VRF} \ge \frac{\sigma_\Pi^2}{L_f^2 e^{-2rT} T \sum_{j > d'} \lambda_j}$$
-
-- **Mean-Reverting Vasicek / OU (Section 13)**:
-  $$1 - \rho^2 \le \frac{L_f^2 e^{-2rT}}{\sigma_\Pi^2} \sum_{j > d'} \lambda_j \frac{1 - e^{-2\gamma_j T}}{2\gamma_j}$$
-- **Heston Stochastic Volatility (Section 11)**:
-  Computed in closed form via the CIR first-moment cascade:
-  $$\bar{v}_i = \theta_i + (v_{0, i} - \theta_i) \frac{1 - e^{-\kappa_i T}}{\kappa_i T}$$
+The key theoretical result is that the variance of the control-variate estimator is reduced by a factor governed by the correlation between the payoff and surrogate, and a lower bound can be expressed through the discarded eigenvalue tail of the covariance operator.
 
 ### 1.4 The Two-Sided Sandwich Bound
 
-Section 15 proves that the estimator is rigorously sandwiched:
-$$\frac{\mathbb{E}[\text{Var}(\Pi \mid \mathcal{P} S_T)]}{\text{Var}(\Pi)} \le 1 - \rho^2 \le \frac{L_f^2 e^{-2rT} T}{\sigma_\Pi^2} \sum_{j > d'} \lambda_j$$
+The estimator is bounded between the intrinsic conditional variance reduction and the a priori spectral tail bound, giving a practical way to assess whether the reduced model is likely to deliver strong variance reduction before simulation.
 
 ### 1.5 Active Subspace Refinement
 
-Section 16 proves that plain PCA is optimal for payoff-agnostic discarded energy, but suboptimal for payoff correlation when payoff sensitivity $w$ lies in discarded directions (e.g., spread options). Active Subspace construction aligns $\mathcal{P}$ with $w$, restoring near-infinite variance reduction.
+When the payoff depends on directions outside the dominant PCA subspace, plain PCA can fail. Active subspace construction aligns the projector with the payoff sensitivity and restores strong variance reduction in precisely those cases.
 
 ---
 

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420">
+  <defs>
+    <style>
+      .title { font: 600 28px 'Arial', sans-serif; fill: #1b1b1b; }
+      .eq { font: 400 28px 'Times New Roman', serif; fill: #111111; }
+      .sub { font: 400 18px 'Arial', sans-serif; fill: #4c4c4c; }
+    </style>
+  </defs>
+  <rect width="1400" height="420" fill="#f7f7f7"/>
+  <text x="50" y="52" class="title">Core spectral reduced-variance equations</text>
+
+  <text x="50" y="105" class="eq">$\bar{A} := \frac{1}{T}\int_0^T \mathbb{E}[\Sigma(S_t)\Sigma(S_t)^\top] \, dt$</text>
+  <text x="50" y="165" class="eq">$\hat{V}_N = \frac{1}{N}\sum_{k=1}^{N} \big(\Pi^{(k)} - \beta^*(Y^{(k)} - \mu_Y)\big)$</text>
+  <text x="50" y="225" class="eq">$\mathrm{VRF} \ge \frac{\sigma_\Pi^2}{L_f^2 e^{-2rT} T \sum_{j>d'} \lambda_j}$</text>
+  <text x="50" y="285" class="eq">$\mathcal{P} = \sum_{j=1}^{d'} \bar{u}_j \bar{u}_j^\top$</text>
+
+  <text x="50" y="350" class="sub">GitHub-safe rendered summary of the key spectral control-variate relationships</text>
+</svg>
